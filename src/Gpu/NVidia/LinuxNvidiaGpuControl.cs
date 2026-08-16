@@ -701,7 +701,13 @@ public class LinuxNvidiaGpuControl : IGpuControl
 
     private bool CheckAvailability()
     {
-        // Check if nvidia-smi exists and returns successfully
+        // A runtime-suspended NVIDIA dGPU is still available.
+        // Avoid waking it with nvidia-smi merely to detect its presence.
+        if (Platform.Linux.LinuxAsusWmi.HasNvidiaModuleLoaded())
+            return true;
+
+        // Fallback for cases where the NVIDIA module is not yet observed
+        // as loaded.
         var output = RunNvidiaSmi("--query-gpu=name", "--format=csv,noheader");
         return output != null && output.Trim().Length > 0;
     }
